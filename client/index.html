@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Google Sheet Example</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<body>
+    <form id="class_registration">
+        <div>
+            <label>First Name</label>
+            <input type="text" name="first_name" value="Scott">
+        </div>
+        <div>
+            <label>Last Name</label>
+            <input type="text" name="last_name" value="Bowler">
+        </div>
+        <div>
+            <label>Phone</label>
+            <input type="text" name="phone" value="909 894-9753">
+        </div>
+        <div>
+            <label>Email</label>
+            <input type="text" name="email" value="mail@mail.com">
+        </div>
+        <div>
+            <label>Date</label>
+            <select name="date" id="date">
+                <option value="Feb 12th 2018">Feb 12th 2018</option>
+                <option value="Feb 26th 2018">Feb 26th 2018</option>
+                <option value="Mar 5th 2018">Mar 5th 2018</option>
+            </select>
+        </div>
+        <div>
+            <label>How did you hear about us?</label>
+            <input type="text" name="marketing" value="Internet">
+        </div>
+        <button id="register">Register</button>
+    </form>
+
+    <br>
+    <hr>
+    <br>
+
+    <form id="class_view">
+        <div>
+            <label>Class Date</label>
+            <select name="class">
+                <option value="Feb 12th 2018">Feb 12th 2018</option>
+                <option value="Feb 26th 2018">Feb 26th 2018</option>
+                <option value="Mar 5th 2018">Mar 5th 2018</option>
+            </select>
+        </div>
+        
+        <button id="find_class">View Class</button>
+    </form>
+
+    <hr>
+
+    <table id="roster"></table>
+
+    <script src="main.js"></script>
+</body>
+</html>
