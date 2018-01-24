@@ -5,10 +5,10 @@ const googleAuth = require('google-auth-library');
 
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/sheets.googleapis.com-nodejs-quickstart.json
-var SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
-var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
+const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+const TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
-var TOKEN_PATH = TOKEN_DIR + 'sheets.googleapis.com-nodejs-quickstart.json';
+const TOKEN_PATH = TOKEN_DIR + 'sheets.googleapis.com-nodejs-quickstart.json';
 const spreadsheetId = '1SY3S6V8TXtcC5FxwF9iUvNmpgO_vek2Q-n-5ryBiTIo';
 
 exports.sendData = function(req, res){
@@ -32,6 +32,32 @@ exports.getData = function(req, res){
         console.log('GET DATA CALLED');
         
         authorize(JSON.parse(content), (auth) => getClassList(auth, req, res));
+    });
+}
+
+exports.getSheets = function(req, res){
+    fs.readFile('client_secret.json', function processClientSecrets(err, content) {
+        if (err) {
+            console.log('Error loading client secret file: ' + err);
+            return;
+        }
+
+        console.log('GET SHEETS CALLED');
+        
+        authorize(JSON.parse(content), (auth) => getAllSheets(auth, req, res));
+    });
+}
+
+exports.newSheet = function(title){
+    fs.readFile('client_secret.json', function processClientSecrets(err, content) {
+        if (err) {
+            console.log('Error loading client secret file: ' + err);
+            return;
+        }
+
+        console.log('GET SHEETS CALLED');
+        
+        authorize(JSON.parse(content), (auth) => createNewSheet(auth, title));
     });
 }
 
@@ -120,6 +146,17 @@ function storeToken(token) {
     console.log('Token stored to ' + TOKEN_PATH);
 }
 
+function writeToSheetsFile(data, cb){
+
+    return new Promise((resolve, reject) => {
+        fs.writeFile('./data/sheets.json', JSON.stringify(data), err => {
+            if(err) return reject({success: false, error: err});
+
+            resolve({success: true});
+        });
+    });
+}
+
 function getClassList(auth, req, res) {
     var sheets = google.sheets('v4');
 
@@ -147,9 +184,56 @@ function getClassList(auth, req, res) {
     });
 }
 
+function getTemplateId(templateName = 'template'){
+    const { sheets } = JSON.parse(fs.readFileSync('./data/sheets.json'));
+    const template = sheets[templateName];
+
+    return template ? template.id : false;
+}
+
+function createNewSheet(auth, title){
+
+    const templateId = getTemplateId();
+
+    console.log('Template ID:', templateId);
+
+    const sheets = google.sheets('v4');
+
+    sheets.spreadsheets.batchUpdate({
+        auth,
+        spreadsheetId,
+        fields: 'replies/duplicateSheet/properties/sheetId',
+        resource: {requests: [
+            {
+                duplicateSheet: {
+                    newSheetName: title,
+                    sourceSheetId: templateId
+                }
+            }
+        ]}
+    }, (err, resp) => {
+        if(err) return console.log('Error Creating New Sheet:', err);
+
+        const sheetId = resp.replies[0].duplicateSheet.properties.sheetId;
+        const saveResp = saveSheetInfoLocal(title, sheetId);
+
+        console.log(`Created new sheet named: ${title}. \nResp Obj:`);
+        console.log(sheetId);
+        console.log('Save Resp:', saveResp);
+    });
+}
+
 function addStudent(auth, req, res){
     
     const sheet = req.body.date;
+
+    if(sheetExists(sheet)){
+        res.send({success: true, msg: 'Sheet Exists'});
+    } else {
+        res.send({success: true, msg: 'Sheet Does Not Exist'});
+    }
+    
+    return;
     
     var body = {
         values: [ buildDataArray(req.body) ]
@@ -222,7 +306,54 @@ function getRowInfo(auth, sheet){
     });
 }
 
+function saveSheetInfoLocal(title, id){
+    const data = JSON.parse(fs.readFileSync('./data/sheets.json'));
+
+    data.sheets[title] = id;
+
+    return fs.writeFileSync('./data/sheets.json', JSON.stringify(data));
+}
+
+function sheetExists(title){
+    const { sheets } = JSON.parse(fs.readFileSync('./data/sheets.json'));
+                
+    return typeof sheets[title] !== 'undefined';
+}
+
+exports.sheetExists = sheetExists;
+
+function getAllSheets(auth, req, res){
+    const sheets = google.sheets('v4');
+
+    sheets.spreadsheets.get({
+        auth,
+        spreadsheetId,
+        fields: 'sheets(properties(sheetId,title))'
+    }, (err, resp) => {
+        if(err){
+            console.log('GET SHEETS returned an error:', err);
+            return res.send({success: false, error: 'Failed getting sheets'});
+        }
+
+        console.log('Response from Get Sheets:', resp);
+
+        const sheetsArr = buildSheetsObj(resp.sheets);
+
+        writeToSheetsFile({sheets: sheetsArr});
+
+        res.send({success: true, data: sheetsArr});
+    });
+}
+
 exports.getNextRowNumber = getNextRowNumber;
+
+function buildSheetsObj(sheetsArr){
+    const sheets = {};
+
+    sheetsArr.map(sheet => sheets[sheet.properties.title] = {id: sheet.properties.sheetId});
+
+    return sheets;
+}
 
 function buildDataArray(info){
     const { first_name, last_name, phone, email, date, marketing } = info;
