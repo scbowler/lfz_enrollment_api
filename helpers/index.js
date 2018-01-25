@@ -74,5 +74,5 @@ function capitalize(str){
 
 module.exports = {
     buildDataArray,
-    
+    buildSheetsObj
 }

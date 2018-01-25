@@ -4,9 +4,9 @@ const { resolve } = require('path');
 const sheetsFilePath = resolve(__dirname, '..', 'data', 'sheets.json');
 
 function saveSheetInfoLocal(title, id){
-    const { sheets } = JSON.parse(fs.readFileSync(sheetsFilePath));
+    const data = JSON.parse(fs.readFileSync(sheetsFilePath));
 
-    sheets[title] = id;
+    data.sheets[title] = id;
 
     return fs.writeFileSync(sheetsFilePath, JSON.stringify(data));
 }
@@ -38,5 +38,6 @@ function getTemplateId(templateName = 'template'){
 module.exports = {
     sheetExists,
     getTemplateId,
-    writeToSheetsFile
+    writeToSheetsFile,
+    saveSheetInfoLocal
 }

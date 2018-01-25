@@ -1,7 +1,8 @@
 const fs = require('fs');
+const { resolve } = require('path');
 const readline = require('readline');
 const googleAuth = require('google-auth-library');
-const { TOKEN_PATH, TOKEN_DIR } = require('../config');
+const { TOKEN_PATH, TOKEN_DIR, SCOPES } = require('../config');
 
 const secretPath = resolve(__dirname, '..', 'config', 'client_secret.json');
 

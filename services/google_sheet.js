@@ -2,8 +2,13 @@ const fs = require('fs');
 const google = require('googleapis');
 const authorize = require('../services/google_auth');
 const { spreadsheetId } = require('../config');
-const { buildDataArray } = require('../helpers');
-const { sheetExists, getTemplateId, writeToSheetsFile } = require('../helpers/file_ops');
+const { buildDataArray, buildSheetsObj } = require('../helpers');
+const { 
+    sheetExists,
+    getTemplateId,
+    writeToSheetsFile,
+    saveSheetInfoLocal 
+} = require('../helpers/file_ops');
 
 exports.sendData = function(req, res){
     authorize(req, res, addStudent);
@@ -13,7 +18,7 @@ exports.getData = function(req, res){
     authorize(req, res, getClassList);
 }
 
-exports.getSheets = function(req, res){
+exports.syncSheets = function(req, res){
     authorize(req, res, syncSheetsFile);
 }
 
@@ -84,7 +89,7 @@ function createNewSheet(auth, title){
 }
 
 function getClassList(auth, req, res) {
-    var sheets = google.sheets('v4');
+    const sheets = google.sheets('v4');
 
     const sheet = req.body.class;
 
@@ -94,24 +99,20 @@ function getClassList(auth, req, res) {
         range: `${sheet}!A1:H`,
     }, function(err, response) {
         if (err) {
-            console.log('The API returned an error: ' + err);
             res.send({success: false, error: 'Google API Error'});
             return;
         }
-        var rows = response.values;
+        const rows = response.values;
         if (rows.length == 0) {
-            console.log('No data found.');
             res.send({success: false, error: 'No Data Found'});
         } else {
-            console.log('rows:', rows);
-
             res.send({success: true, rows});
         }
     });
 }
 
 function getNextRowNumber(auth, sheet){
-    var sheets = google.sheets('v4');
+    const sheets = google.sheets('v4');
 
     return new Promise((resolve, reject) => {
         sheets.spreadsheets.values.get({
@@ -122,16 +123,16 @@ function getNextRowNumber(auth, sheet){
             if (err) {
                 reject({success: false, error: 'Google API Error'});
             }
-            var rows = response.values;
+            const rows = response.values;
             
             if (rows.length == 0) {
                 resolve(1);
             } else {
-                for(var i = 1; i < rows.length; i++){
+                for(let i = 1; i < rows.length; i++){
                     const row = rows[i];
                     if(!row[1] && !row[2]){
                         
-                        return res(i + 1);
+                        return resolve(i + 1);
                     }
                 }
                 return resolve(i + 1);
