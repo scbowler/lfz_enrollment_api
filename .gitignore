@@ -1,2 +1,6 @@
 node_modules
-client_secret.json
+
+config/dev.js
+config/production.js
+config/client_secret.json
+data/sheets.json
