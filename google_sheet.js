@@ -5,10 +5,10 @@ const googleAuth = require('google-auth-library');
 
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/sheets.googleapis.com-nodejs-quickstart.json
-var SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
-var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
+const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+const TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
-var TOKEN_PATH = TOKEN_DIR + 'sheets.googleapis.com-nodejs-quickstart.json';
+const TOKEN_PATH = TOKEN_DIR + 'sheets.googleapis.com-nodejs-quickstart.json';
 const spreadsheetId = '1SY3S6V8TXtcC5FxwF9iUvNmpgO_vek2Q-n-5ryBiTIo';
 
 exports.sendData = function(req, res){
@@ -32,6 +32,32 @@ exports.getData = function(req, res){
         console.log('GET DATA CALLED');
         
         authorize(JSON.parse(content), (auth) => getClassList(auth, req, res));
+    });
+}
+
+exports.getSheets = function(req, res){
+    fs.readFile('client_secret.json', function processClientSecrets(err, content) {
+        if (err) {
+            console.log('Error loading client secret file: ' + err);
+            return;
+        }
+
+        console.log('GET SHEETS CALLED');
+        
+        authorize(JSON.parse(content), (auth) => getAllSheets(auth, req, res));
+    });
+}
+
+exports.newSheet = function(title){
+    fs.readFile('client_secret.json', function processClientSecrets(err, content) {
+        if (err) {
+            console.log('Error loading client secret file: ' + err);
+            return;
+        }
+
+        console.log('GET SHEETS CALLED');
+        
+        authorize(JSON.parse(content), (auth) => createNewSheet(auth, title));
     });
 }
 
@@ -120,6 +146,17 @@ function storeToken(token) {
     console.log('Token stored to ' + TOKEN_PATH);
 }
 
+function writeToSheetsFile(data, cb){
+
+    return new Promise((resolve, reject) => {
+        fs.writeFile('./data/sheets.json', JSON.stringify(data), err => {
+            if(err) return reject({success: false, error: err});
+
+            resolve({success: true});
+        });
+    });
+}
+
 function getClassList(auth, req, res) {
     var sheets = google.sheets('v4');
 
@@ -147,15 +184,48 @@ function getClassList(auth, req, res) {
     });
 }
 
-function addStudent(auth, req, res){
-    
-    const sheet = req.body.date;
-    
-    var body = {
+function getTemplateId(templateName = 'template'){
+    const { sheets } = JSON.parse(fs.readFileSync('./data/sheets.json'));
+    const template = sheets[templateName];
+
+    return template ? template.id : false;
+}
+
+function createNewSheet(auth, title){
+
+    return new Promise((resolve, reject) => {
+        const templateId = getTemplateId();
+        const sheets = google.sheets('v4');
+
+        sheets.spreadsheets.batchUpdate({
+            auth,
+            spreadsheetId,
+            fields: 'replies/duplicateSheet/properties/sheetId',
+            resource: {requests: [
+                {
+                    duplicateSheet: {
+                        newSheetName: title,
+                        sourceSheetId: templateId
+                    }
+                }
+            ]}
+        }, (err, resp) => {
+            if(err) return reject(err);
+
+            const sheetId = resp.replies[0].duplicateSheet.properties.sheetId;
+            const saveResp = saveSheetInfoLocal(title, sheetId);
+
+            resolve(true);
+        });
+    });
+}
+
+function saveStudent(auth, sheet, req, res){
+    const body = {
         values: [ buildDataArray(req.body) ]
     };
 
-    var sheets = google.sheets('v4');
+    const sheets = google.sheets('v4');
 
     getNextRowNumber(sheet).then( row => {
         sheets.spreadsheets.values.update({
@@ -174,6 +244,19 @@ function addStudent(auth, req, res){
         }
         });
     });
+}
+
+function addStudent(auth, req, res){
+    
+    const sheet = req.body.date;
+
+    if(sheetExists(sheet)){
+        saveStudent(auth, sheet, req, res);
+    } else {
+        createNewSheet(auth, sheet).then(() => {
+            saveStudent(auth, sheet, req, res);
+        });
+    }   
 }
 
 function getNextRowNumber(sheet){
@@ -222,27 +305,74 @@ function getRowInfo(auth, sheet){
     });
 }
 
+function saveSheetInfoLocal(title, id){
+    const data = JSON.parse(fs.readFileSync('./data/sheets.json'));
+
+    data.sheets[title] = id;
+
+    return fs.writeFileSync('./data/sheets.json', JSON.stringify(data));
+}
+
+function sheetExists(title){
+    const { sheets } = JSON.parse(fs.readFileSync('./data/sheets.json'));
+                
+    return typeof sheets[title] !== 'undefined';
+}
+
+exports.sheetExists = sheetExists;
+
+function getAllSheets(auth, req, res){
+    const sheets = google.sheets('v4');
+
+    sheets.spreadsheets.get({
+        auth,
+        spreadsheetId,
+        fields: 'sheets(properties(sheetId,title))'
+    }, (err, resp) => {
+        if(err){
+            console.log('GET SHEETS returned an error:', err);
+            return res.send({success: false, error: 'Failed getting sheets'});
+        }
+
+        console.log('Response from Get Sheets:', resp);
+
+        const sheetsArr = buildSheetsObj(resp.sheets);
+
+        writeToSheetsFile({sheets: sheetsArr});
+
+        res.send({success: true, data: sheetsArr});
+    });
+}
+
 exports.getNextRowNumber = getNextRowNumber;
+
+function buildSheetsObj(sheetsArr){
+    const sheets = {};
+
+    sheetsArr.map(sheet => sheets[sheet.properties.title] = {id: sheet.properties.sheetId});
+
+    return sheets;
+}
 
 function buildDataArray(info){
     const { first_name, last_name, phone, email, date, marketing } = info;
     const sheet = date;
     return [
         null,                                       // #
-        new Date().toLocaleString(),                // Enroll Date
+        email,                                      // Email
         first_name + ' ' + last_name,               // Name
         first_name,                                 // First Name
         last_name,                                  // Last Name
         phone,                                      // Phone #
         date,                                       // Class Date
+        new Date().toLocaleString(),                // Enroll Date
         '',                                         // Follow Up
         '',                                         // Prep MC
         '',                                         // Reminder MC
         '',                                         // Prep Instructions
         'No',                                       // Paid
         '$0',                                       // Amount
-        marketing,                                  // Marketing,
-        email,                                      // Email
+        marketing,                                  // Marketing
         genPortalId(date, first_name, last_name),   // Portal UID
         '',                                         // Github Username
         'Not Invited',                              // Slack Status
