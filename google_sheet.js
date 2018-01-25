@@ -193,53 +193,39 @@ function getTemplateId(templateName = 'template'){
 
 function createNewSheet(auth, title){
 
-    const templateId = getTemplateId();
+    return new Promise((resolve, reject) => {
+        const templateId = getTemplateId();
+        const sheets = google.sheets('v4');
 
-    console.log('Template ID:', templateId);
-
-    const sheets = google.sheets('v4');
-
-    sheets.spreadsheets.batchUpdate({
-        auth,
-        spreadsheetId,
-        fields: 'replies/duplicateSheet/properties/sheetId',
-        resource: {requests: [
-            {
-                duplicateSheet: {
-                    newSheetName: title,
-                    sourceSheetId: templateId
+        sheets.spreadsheets.batchUpdate({
+            auth,
+            spreadsheetId,
+            fields: 'replies/duplicateSheet/properties/sheetId',
+            resource: {requests: [
+                {
+                    duplicateSheet: {
+                        newSheetName: title,
+                        sourceSheetId: templateId
+                    }
                 }
-            }
-        ]}
-    }, (err, resp) => {
-        if(err) return console.log('Error Creating New Sheet:', err);
+            ]}
+        }, (err, resp) => {
+            if(err) return reject(err);
 
-        const sheetId = resp.replies[0].duplicateSheet.properties.sheetId;
-        const saveResp = saveSheetInfoLocal(title, sheetId);
+            const sheetId = resp.replies[0].duplicateSheet.properties.sheetId;
+            const saveResp = saveSheetInfoLocal(title, sheetId);
 
-        console.log(`Created new sheet named: ${title}. \nResp Obj:`);
-        console.log(sheetId);
-        console.log('Save Resp:', saveResp);
+            resolve(true);
+        });
     });
 }
 
-function addStudent(auth, req, res){
-    
-    const sheet = req.body.date;
-
-    if(sheetExists(sheet)){
-        res.send({success: true, msg: 'Sheet Exists'});
-    } else {
-        res.send({success: true, msg: 'Sheet Does Not Exist'});
-    }
-    
-    return;
-    
-    var body = {
+function saveStudent(auth, sheet, req, res){
+    const body = {
         values: [ buildDataArray(req.body) ]
     };
 
-    var sheets = google.sheets('v4');
+    const sheets = google.sheets('v4');
 
     getNextRowNumber(sheet).then( row => {
         sheets.spreadsheets.values.update({
@@ -258,6 +244,19 @@ function addStudent(auth, req, res){
         }
         });
     });
+}
+
+function addStudent(auth, req, res){
+    
+    const sheet = req.body.date;
+
+    if(sheetExists(sheet)){
+        saveStudent(auth, sheet, req, res);
+    } else {
+        createNewSheet(auth, sheet).then(() => {
+            saveStudent(auth, sheet, req, res);
+        });
+    }   
 }
 
 function getNextRowNumber(sheet){
@@ -360,20 +359,20 @@ function buildDataArray(info){
     const sheet = date;
     return [
         null,                                       // #
-        new Date().toLocaleString(),                // Enroll Date
+        email,                                      // Email
         first_name + ' ' + last_name,               // Name
         first_name,                                 // First Name
         last_name,                                  // Last Name
         phone,                                      // Phone #
         date,                                       // Class Date
+        new Date().toLocaleString(),                // Enroll Date
         '',                                         // Follow Up
         '',                                         // Prep MC
         '',                                         // Reminder MC
         '',                                         // Prep Instructions
         'No',                                       // Paid
         '$0',                                       // Amount
-        marketing,                                  // Marketing,
-        email,                                      // Email
+        marketing,                                  // Marketing
         genPortalId(date, first_name, last_name),   // Portal UID
         '',                                         // Github Username
         'Not Invited',                              // Slack Status
