@@ -8,17 +8,28 @@ const sheetsFilePath = {
 
 function saveSheetInfoLocal(title, classId, sheetId){
     const filePath = sheetsFilePath[classId];
-    const data = JSON.parse(fs.readFileSync(filePath));
 
-    data.sheets[title] = sheetId;
+    if(filePath){
+        const data = JSON.parse(fs.readFileSync(filePath));
 
-    return fs.writeFileSync(filePath, JSON.stringify(data));
+        data.sheets[title] = sheetId;
+    
+        return fs.writeFileSync(filePath, JSON.stringify(data));
+    }
+
+    throw new Error(`Invalid file path - "${filePath}"`);
 }
 
 function sheetExists(title, classId){
-    const { sheets } = JSON.parse(fs.readFileSync(sheetsFilePath[classId]));
+    const filePath = sheetsFilePath[classId];
+
+    if(filePath){
+        const { sheets } = JSON.parse(fs.readFileSync(filePath));
                 
-    return typeof sheets[title] !== 'undefined';
+        return typeof sheets[title] !== 'undefined';
+    }
+
+    throw new Error(`Invalid file path - "${filePath}"`);
 }
 
 function writeToSheetsFile(classId, data){
@@ -29,12 +40,30 @@ function writeToSheetsFile(classId, data){
 
         if(filePath){
             fs.writeFile(filePath, JSON.stringify(data), err => {
-                if(err) return reject({success: false, error: err});
+                if(err) return reject({
+                    msg: 'Error: Writing to file',
+                    function: {
+                        name: 'writeToSheetsFile',
+                        paramsList: ['classId', 'data'],
+                        paramsValues: { classId, data }
+                    },
+                    file: __filename,
+                    error: err.message
+                });
     
                 resolve({success: true});
             });
         } else {
-            reject({success: false, error: 'Unknown Spreadsheet ID'});
+            reject({
+                msg: 'Error: Invalid file path',
+                function: {
+                    name: 'writeToSheetsFile',
+                    paramsList: ['classId', 'data'],
+                    paramsValues: { classId, data }
+                },
+                file: __filename,
+                error: `Invalid file path - "${filePath}"`
+            });
         }        
     });
 }
@@ -49,7 +78,7 @@ function getTemplateId(classId, templateName = 'template'){
         return template ? template.id : false;
     }
 
-    return false;
+    throw new Error(`Invalid file path - "${filePath}"`);
 }
 
 module.exports = {
