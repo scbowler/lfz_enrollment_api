@@ -40,7 +40,6 @@ function addStudent(auth, req, res){
             });
         }   
     } catch(err){
-        console.log('There was an ERROR:', err.message);
         sendEmail({
             msg: 'Caught error in code',
             function: 'addStudent',
