@@ -2,7 +2,7 @@ const fs = require('fs');
 const google = require('googleapis');
 const authorize = require('../services/google_auth');
 const { spreadsheetId } = require('../config');
-const { buildDataArray, buildSheetsObj } = require('../helpers');
+const { buildDataArray, buildSheetsObj, normalizeNames } = require('../helpers');
 const { 
     sheetExists,
     getTemplateId,
@@ -24,36 +24,30 @@ exports.syncSheets = function(req, res){
 
 function addStudent(auth, req, res){
 
-    console.log('Data Array:', req.body);
-
-    return res.send({msg: 'Testing in progress'});
+    const formData = normalizeNames(req.body);
     
-    const sheet = req.body.date;
+    const sheet = formData.class_date;
 
-    if(sheetExists(sheet)){
-        saveStudent(auth, sheet, req, res);
+    if(sheetExists(sheet, formData.formId)){
+        saveStudent(auth, sheet, formData, res);
     } else {
-        createNewSheet(auth, sheet).then(() => {
-            saveStudent(auth, sheet, req, res);
+        createNewSheet(auth, sheet, formData.formId).then(() => {
+            saveStudent(auth, sheet, formData, res);
         });
     }   
 }
 
-function saveStudent(auth, sheet, req, res){
+function saveStudent(auth, sheet, formData, res){
     const body = {
-        values: [ buildDataArray(req.body) ]
+        values: [ buildDataArray(formData) ]
     };
-
-    console.log('Data Array:', body);
-
-    return res.send({msg: 'Testing in progress'});
 
     const sheets = google.sheets('v4');
 
-    getNextRowNumber(auth, sheet).then( row => {
+    getNextRowNumber(auth, sheet, spreadsheetId[formData.formId]).then( row => {
         sheets.spreadsheets.values.update({
             auth: auth,
-            spreadsheetId: spreadsheetId,
+            spreadsheetId: spreadsheetId[formData.formId],
             range: `${sheet}!A${row}`,
             valueInputOption: 'USER_ENTERED',
             resource: body
@@ -64,18 +58,20 @@ function saveStudent(auth, sheet, req, res){
                 res.send({success: true});
             }
         });
+    }).catch( err => {
+        res.send({success: false, error: 'Unable to get next row number'});
     });
 }
 
-function createNewSheet(auth, title){
+function createNewSheet(auth, title, classId){
 
     return new Promise((resolve, reject) => {
-        const templateId = getTemplateId();
+        const templateId = getTemplateId(classId);
         const sheets = google.sheets('v4');
 
         sheets.spreadsheets.batchUpdate({
             auth,
-            spreadsheetId,
+            spreadsheetId: spreadsheetId[classId],
             fields: 'replies/duplicateSheet/properties/sheetId',
             resource: {requests: [
                 {
@@ -89,7 +85,7 @@ function createNewSheet(auth, title){
             if(err) return reject(err);
 
             const sheetId = resp.replies[0].duplicateSheet.properties.sheetId;
-            const saveResp = saveSheetInfoLocal(title, sheetId);
+            const saveResp = saveSheetInfoLocal(title, classId, sheetId);
 
             resolve(true);
         });
@@ -119,7 +115,7 @@ function getClassList(auth, req, res) {
     });
 }
 
-function getNextRowNumber(auth, sheet){
+function getNextRowNumber(auth, sheet, spreadsheetId){
     const sheets = google.sheets('v4');
 
     return new Promise((resolve, reject) => {
@@ -150,11 +146,13 @@ function getNextRowNumber(auth, sheet){
 }
 
 function syncSheetsFile(auth, req, res){
+    const classId = req.query.sheets;
+
     const sheets = google.sheets('v4');
 
     sheets.spreadsheets.get({
         auth,
-        spreadsheetId,
+        spreadsheetId: spreadsheetId[classId],
         fields: 'sheets(properties(sheetId,title))'
     }, (err, resp) => {
         if(err){
@@ -163,7 +161,7 @@ function syncSheetsFile(auth, req, res){
 
         const sheetsArr = buildSheetsObj(resp.sheets);
 
-        writeToSheetsFile({sheets: sheetsArr});
+        writeToSheetsFile(classId, {sheets: sheetsArr});
 
         res.send({success: true, data: sheetsArr});
     });
