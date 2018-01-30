@@ -8,8 +8,8 @@ function buildSheetsObj(sheetsArr){
 }
 
 function buildDataArray(info){
-    const { first_name, last_name, phone, email, date, marketing } = info;
-    const sheet = date;
+    const { first_name, last_name, phone, email, class_date, marketing } = info;
+    const sheet = class_date;
     return [
         null,                                       // #
         email,                                      // Email
@@ -17,7 +17,7 @@ function buildDataArray(info){
         first_name,                                 // First Name
         last_name,                                  // Last Name
         phone,                                      // Phone #
-        date,                                       // Class Date
+        class_date,                                 // Class Date
         new Date().toLocaleString(),                // Enroll Date
         '',                                         // Follow Up
         '',                                         // Prep MC
@@ -26,7 +26,9 @@ function buildDataArray(info){
         'No',                                       // Paid
         '$0',                                       // Amount
         marketing,                                  // Marketing
-        genPortalId(date, first_name, last_name),   // Portal UID
+        genPortalId(
+            class_date, first_name, last_name 
+        ),                                          // Portal UID
         '',                                         // Github Username
         'Not Invited',                              // Slack Status
         'Not Invited',                              // Portal Status
@@ -68,11 +70,30 @@ function dateToMonthYear(date){
     return months[dateArr[0]] + dateArr[dateArr.length - 1].slice(2);
 }
 
+function normalizeNames(obj){
+    const normalized = {};
+
+    Object.keys(obj).map( key => {
+        const keyArr = key.split('_');
+
+        const inputtedIndex = keyArr.indexOf('inputted');
+
+        if(inputtedIndex > -1){
+            keyArr.splice(inputtedIndex, 1);
+        }
+
+        normalized[keyArr.join('_')] = obj[key];
+    });
+
+    return normalized;
+}
+
 function capitalize(str){
     return str[0].toUpperCase() + str.slice(1);
 }
 
 module.exports = {
     buildDataArray,
-    buildSheetsObj
+    buildSheetsObj,
+    normalizeNames
 }

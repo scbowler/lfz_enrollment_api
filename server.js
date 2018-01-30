@@ -9,6 +9,7 @@ const app = express();
 app.use(express.static(path.resolve(__dirname, 'client')));
 app.use(express.urlencoded({extended: false}));
 app.use(express.json());
+app.use(cors());
 
 routes(app);
 
