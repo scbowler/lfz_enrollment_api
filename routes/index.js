@@ -10,4 +10,10 @@ module.exports = app => {
     app.post('/get-data', getData);
 
     app.get('/sync-sheets', syncSheets);
+
+    app.post('/test', (req, res) => {
+        console.log('Test:', req.body);
+
+        res.send({success: true});
+    });
 }

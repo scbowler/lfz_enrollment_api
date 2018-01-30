@@ -23,6 +23,10 @@ exports.syncSheets = function(req, res){
 }
 
 function addStudent(auth, req, res){
+
+    console.log('Data Array:', req.body);
+
+    return res.send({msg: 'Testing in progress'});
     
     const sheet = req.body.date;
 
@@ -39,6 +43,10 @@ function saveStudent(auth, sheet, req, res){
     const body = {
         values: [ buildDataArray(req.body) ]
     };
+
+    console.log('Data Array:', body);
+
+    return res.send({msg: 'Testing in progress'});
 
     const sheets = google.sheets('v4');
 
