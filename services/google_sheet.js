@@ -2,6 +2,7 @@ const fs = require('fs');
 const google = require('googleapis');
 const authorize = require('../services/google_auth');
 const { spreadsheetId } = require('../config');
+const sendEmail = require('../services/email');
 const { buildDataArray, buildSheetsObj, normalizeNames } = require('../helpers');
 const { 
     sheetExists,
@@ -28,13 +29,24 @@ function addStudent(auth, req, res){
     
     const sheet = formData.class_date;
 
-    if(sheetExists(sheet, formData.formId)){
-        saveStudent(auth, sheet, formData, res);
-    } else {
-        createNewSheet(auth, sheet, formData.formId).then(() => {
+    try{
+        if(sheetExists(sheet, formData.formId)){
             saveStudent(auth, sheet, formData, res);
+        } else {
+            createNewSheet(auth, sheet, formData.formId).then(() => {
+                saveStudent(auth, sheet, formData, res);
+            }).catch(err => {
+                sendEmail(err);
+            });
+        }   
+    } catch(err){
+        sendEmail({
+            msg: 'Caught error in code',
+            function: 'addStudent',
+            file: __filename,
+            error: err.message
         });
-    }   
+    }
 }
 
 function saveStudent(auth, sheet, formData, res){
@@ -53,13 +65,25 @@ function saveStudent(auth, sheet, formData, res){
             resource: body
         }, function(err, result) {
             if(err) {
-                res.send({success: false, error: 'Unable to save data'});
-            } else {
-                res.send({success: true});
+                sendEmail({
+                    msg: 'Google API Error Updating Sheet', 
+                    function: {
+                        name: 'saveStudent',
+                        paramsList: ['auth', 'sheet', 'formData', 'res'],
+                        paramsValues: {
+                            auth, sheet, formData, res: 'Intentionally not included here'
+                        }
+                    },
+                    file: __filename,
+                    error: err.message
+                });
+                return res.send({success: false, error: 'Unable to save data'});
             }
+            
+            res.send({success: true});
         });
     }).catch( err => {
-        res.send({success: false, error: 'Unable to get next row number'});
+        sendEmail(err);
     });
 }
 
@@ -82,12 +106,32 @@ function createNewSheet(auth, title, classId){
                 }
             ]}
         }, (err, resp) => {
-            if(err) return reject(err);
+            if(err) return reject({
+                msg: 'Google API Error Creating New Sheet', 
+                function: {
+                    name: 'createNewSheet',
+                    paramsList: ['auth', 'title', 'classId'],
+                    paramsValues: {
+                        auth, title, classId
+                    }
+                },
+                file: __filename,
+                error: err.message
+            });
 
-            const sheetId = resp.replies[0].duplicateSheet.properties.sheetId;
-            const saveResp = saveSheetInfoLocal(title, classId, sheetId);
-
-            resolve(true);
+            try{
+                const sheetId = resp.replies[0].duplicateSheet.properties.sheetId;
+                const saveResp = saveSheetInfoLocal(title, classId, sheetId);
+    
+                resolve(true);
+            } catch(err){
+                sendEmail({
+                    msg: 'Caught error in code',
+                    function: 'createNewSheet',
+                    file: __filename,
+                    error: err.message
+                });
+            }
         });
     });
 }
@@ -106,6 +150,7 @@ function getClassList(auth, req, res) {
             res.send({success: false, error: 'Google API Error'});
             return;
         }
+        
         const rows = response.values;
         if (rows.length == 0) {
             res.send({success: false, error: 'No Data Found'});
@@ -125,13 +170,26 @@ function getNextRowNumber(auth, sheet, spreadsheetId){
             range: `${sheet}!A1:C`,
         }, function(err, response) {
             if (err) {
-                reject({success: false, error: 'Google API Error'});
+                return reject({
+                    msg: 'Google API Error', 
+                    function: {
+                        name: 'getNextRowNumber',
+                        paramsList: ['auth', 'sheet', 'spreadsheetId'],
+                        paramsValues: {
+                            auth, sheet, spreadsheetId
+                        }
+                    },
+                    file: __filename,
+                    error: err.message
+                });
             }
-            const rows = response.values;
+            try{
+                const rows = response.values;
             
-            if (rows.length == 0) {
-                resolve(1);
-            } else {
+                if (rows.length == 0) {
+                    return resolve(1);
+                } 
+
                 for(let i = 1; i < rows.length; i++){
                     const row = rows[i];
                     if(!row[1] && !row[2]){
@@ -140,6 +198,13 @@ function getNextRowNumber(auth, sheet, spreadsheetId){
                     }
                 }
                 return resolve(i + 1);
+            } catch(err){
+                reject({
+                    msg: 'Caught code error',
+                    function: 'getNextRowNumber',
+                    file: __filename,
+                    error: err.message
+                });
             }
         });
     });
@@ -161,7 +226,9 @@ function syncSheetsFile(auth, req, res){
 
         const sheetsArr = buildSheetsObj(resp.sheets);
 
-        writeToSheetsFile(classId, {sheets: sheetsArr});
+        writeToSheetsFile(classId, {sheets: sheetsArr}).catch( err => {
+            sendEmail(err);
+        });
 
         res.send({success: true, data: sheetsArr});
     });

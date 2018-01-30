@@ -3,6 +3,7 @@ const { resolve } = require('path');
 const readline = require('readline');
 const googleAuth = require('google-auth-library');
 const { TOKEN_PATH, TOKEN_DIR, SCOPES } = require('../config');
+const sendEmail = require('./email');
 
 const secretPath = resolve(__dirname, '..', 'config', 'client_secret.json');
 
@@ -65,6 +66,12 @@ function getNewToken(oauth2Client, callback) {
         oauth2Client.getToken(code, function(err, token) {
             if (err) {
                 console.log('Error while trying to retrieve access token', err);
+                sendEmail({
+                    msg: 'Error while trying to retrieve access token',
+                    function: 'getNewToken',
+                    file: __filename,
+                    error: err.message
+                });
                 return;
             }
             oauth2Client.credentials = token;
