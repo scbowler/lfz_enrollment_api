@@ -26,7 +26,6 @@ fs.readFile(secretPath, function processClientSecrets(err, content) {
  * @param {function} callback The callback to call with the authorized client.
  */
 function authorize(credentials, callback) {
-    	console.log('AUTHORIZE Called...');
 	return new Promise((res, rej) => {
         const clientSecret = credentials.installed.client_secret;
         const clientId = credentials.installed.client_id;
@@ -37,11 +36,9 @@ function authorize(credentials, callback) {
         // Check if we have previously stored a token.
         fs.readFile(TOKEN_PATH, function(err, token) {
             if (err) {
-		console.log('Making a new token...');
                 getNewToken(oauth2Client, callback);
-                rej({success: false, error: 'Generated new token'});
+                res({success: true, message: 'Generated new token'});
             } else {
-		console.log('Not making a new token :(');
                 oauth2Client.credentials = JSON.parse(token);
                 const result = callback(oauth2Client);
                 if(result && result.then){
