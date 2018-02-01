@@ -7,6 +7,17 @@ const sendEmail = require('./email');
 
 const secretPath = resolve(__dirname, '..', 'config', 'client_secret.json');
 
+// Load client secrets from a local file.
+fs.readFile(secretPath, function processClientSecrets(err, content) {
+  if (err) {
+    console.log('Error loading client secret file: ' + err);
+    return;
+  }
+  // Authorize a client with the loaded credentials, then call the
+  // Google Sheets API.
+  authorize(JSON.parse(content), (auth) => console.log('Auth setup complete'));
+});
+
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
  * given callback function.
@@ -15,7 +26,8 @@ const secretPath = resolve(__dirname, '..', 'config', 'client_secret.json');
  * @param {function} callback The callback to call with the authorized client.
  */
 function authorize(credentials, callback) {
-    return new Promise((res, rej) => {
+    	console.log('AUTHORIZE Called...');
+	return new Promise((res, rej) => {
         const clientSecret = credentials.installed.client_secret;
         const clientId = credentials.installed.client_id;
         const redirectUrl = credentials.installed.redirect_uris[0];
@@ -25,9 +37,11 @@ function authorize(credentials, callback) {
         // Check if we have previously stored a token.
         fs.readFile(TOKEN_PATH, function(err, token) {
             if (err) {
+		console.log('Making a new token...');
                 getNewToken(oauth2Client, callback);
                 rej({success: false, error: 'Generated new token'});
             } else {
+		console.log('Not making a new token :(');
                 oauth2Client.credentials = JSON.parse(token);
                 const result = callback(oauth2Client);
                 if(result && result.then){

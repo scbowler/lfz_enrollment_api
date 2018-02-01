@@ -1,4 +1,4 @@
-const ENV = process.env.ENV || 'dev';
+const ENV = process.env.ENV || 'production';
 let config = {};
 
 if(ENV === 'production'){
