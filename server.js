@@ -14,10 +14,10 @@ app.use(cors());
 
 routes(app);
 
-// if(ENV !== 'production'){
+if(ENV !== 'production'){
     app.listen(PORT, () => {
         console.log('Server running on PORT: ' + PORT);
     });
-// }
+}
 
 exports.app = app;
