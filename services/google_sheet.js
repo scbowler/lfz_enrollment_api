@@ -20,7 +20,6 @@ exports.getData = function(req, res){
 }
 
 exports.syncSheets = function(req, res){
-    console.log('Are we making it this far?');
     authorize(req, res, syncSheetsFile);
 }
 
