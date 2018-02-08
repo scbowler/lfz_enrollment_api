@@ -1,14 +1,9 @@
 const fs = require('fs');
 const { resolve } = require('path');
-
-const sheetsFilePath = {
-    'enroll-info-session': resolve(__dirname, '..', 'data', 'info_session_sheets.json'),
-    'root-level-1': resolve(__dirname, '..', 'data', 'root_1_sheets.json'),
-    'root-js': resolve(__dirname, '..', 'data', 'root_js_sheets.json')
-}
+const { spreadsheet } = require('../config');
 
 function saveSheetInfoLocal(title, classId, sheetId){
-    const filePath = sheetsFilePath[classId];
+    const filePath = spreadsheet[classId].path;
 
     if(filePath){
         const data = JSON.parse(fs.readFileSync(filePath));
@@ -22,7 +17,7 @@ function saveSheetInfoLocal(title, classId, sheetId){
 }
 
 function sheetExists(title, classId){
-    const filePath = sheetsFilePath[classId];
+    const filePath = spreadsheet[classId].path;
 
     if(filePath){
         const { sheets } = JSON.parse(fs.readFileSync(filePath));
@@ -37,7 +32,7 @@ function writeToSheetsFile(classId, data){
 
     return new Promise((resolve, reject) => {
 
-        const filePath = sheetsFilePath[classId];
+        const filePath = spreadsheet[classId].path;
 
         if(filePath){
             fs.writeFile(filePath, JSON.stringify(data), err => {
@@ -70,7 +65,7 @@ function writeToSheetsFile(classId, data){
 }
 
 function getTemplateId(classId, templateName = 'template'){
-    const filePath = sheetsFilePath[classId];
+    const filePath = spreadsheet[classId].path;
 
     if(filePath){
         const { sheets } = JSON.parse(fs.readFileSync(filePath));

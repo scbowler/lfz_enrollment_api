@@ -36,7 +36,16 @@ function addStudent(auth, req, res){
             createNewSheet(auth, sheet, formData.formId).then(() => {
                 saveStudent(auth, sheet, formData, res);
             }).catch(err => {
-                sendEmail(err);
+                if(err.msg){
+                    return sendEmail(err);
+                }
+                
+                sendEmail({
+                    msg: 'Caught error in code. createBewSheet failed',
+                    function: 'addStudent',
+                    file: __filename,
+                    error: err.message
+                })
             });
         }   
     } catch(err){
