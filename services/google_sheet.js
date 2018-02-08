@@ -36,7 +36,10 @@ function addStudent(auth, req, res){
             createNewSheet(auth, sheet, formData.formId).then(() => {
                 saveStudent(auth, sheet, formData, res);
             }).catch(err => {
-                sendEmail(err);
+                if(err.message){
+                    sendEmail(err);
+                }
+                
             });
         }   
     } catch(err){
