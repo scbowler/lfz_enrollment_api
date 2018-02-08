@@ -8,35 +8,62 @@ function buildSheetsObj(sheetsArr){
 }
 
 function buildDataArray(info){
-    const { first_name, last_name, phone, email, class_date, marketing } = info;
+    const { first_name, last_name, phone, email, class_date, marketing, formId } = info;
     const sheet = class_date;
-    return [
-        null,                                       // #
-        email,                                      // Email
-        first_name + ' ' + last_name,               // Name
-        first_name,                                 // First Name
-        last_name,                                  // Last Name
-        phone,                                      // Phone #
-        class_date,                                 // Class Date
-        new Date().toLocaleString(),                // Enroll Date
-        '',                                         // Follow Up
-        '',                                         // Prep MC
-        '',                                         // Reminder MC
-        '',                                         // Prep Instructions
-        'No',                                       // Paid
-        '$0',                                       // Amount
-        marketing,                                  // Marketing
-        genPortalId(
-            class_date, first_name, last_name 
-        ),                                          // Portal UID
-        '',                                         // Github Username
-        'Not Invited',                              // Slack Status
-        'Not Invited',                              // Portal Status
-        'Not Invited',                              // Github Team
-        'Not Created',                              // root prototypes
-        'Not Created',                              // root portfolio
-        'Not Created'                               // root mboutique
-    ];
+    
+    switch(formId){
+        case 'enroll-info-session':
+            return [
+                null,                                       // #
+                first_name,                                 // First Name
+                last_name,                                  // Last Name
+                email,                                      // Email
+                marketing,                                  // Marketing
+                phone,                                      // Phone #
+                new Date().toLocaleString(),                // Enroll Date
+                getFromParentheses(class_date),             // In Person / Virtual
+            ];
+        case 'root-js':
+        case 'root-level-1':
+            return [
+                null,                                       // #
+                email,                                      // Email
+                first_name + ' ' + last_name,               // Name
+                first_name,                                 // First Name
+                last_name,                                  // Last Name
+                phone,                                      // Phone #
+                class_date,                                 // Class Date
+                new Date().toLocaleString(),                // Enroll Date
+                '',                                         // Follow Up
+                '',                                         // Prep MC
+                '',                                         // Reminder MC
+                '',                                         // Prep Instructions
+                'No',                                       // Paid
+                '$0',                                       // Amount
+                marketing,                                  // Marketing
+                genPortalId(
+                    class_date, first_name, last_name 
+                ),                                          // Portal UID
+                '',                                         // Github Username
+                'Not Invited',                              // Slack Status
+                'Not Invited',                              // Portal Status
+                'Not Invited',                              // Github Team
+                'Not Created',                              // root prototypes
+                'Not Created',                              // root portfolio
+                'Not Created'                               // root mboutique
+            ];
+        default:
+            return [
+                'Unknown',
+                'Template',
+                'Unknown',
+                'Template',
+                'Unknown',
+                'Template',
+                'Unknown',
+                'Template'
+            ]
+    }
 }
 
 function genPortalId(date, fName, lName){
@@ -70,6 +97,18 @@ function dateToMonthYear(date){
     return months[dateArr[0]] + dateArr[dateArr.length - 1].slice(2);
 }
 
+function getFromParentheses(str){
+    const result = /(\((.*)\))/g.exec(str);
+
+    return result[result.length - 1] || 'Unknown';
+}
+
+function normalizeSheetName(name){
+    const atIndex = name.indexOf('@');
+  
+    return name.substr(0, atIndex - 1) || name;
+}
+
 function normalizeNames(obj){
     const normalized = {};
 
@@ -95,5 +134,6 @@ function capitalize(str){
 module.exports = {
     buildDataArray,
     buildSheetsObj,
-    normalizeNames
+    normalizeNames,
+    normalizeSheetName
 }

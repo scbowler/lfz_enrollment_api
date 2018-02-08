@@ -2,6 +2,7 @@ const fs = require('fs');
 const { resolve } = require('path');
 
 const sheetsFilePath = {
+    'enroll-info-session': resolve(__dirname, '..', 'data', 'info_session_sheets.json'),
     'root-level-1': resolve(__dirname, '..', 'data', 'root_1_sheets.json'),
     'root-js': resolve(__dirname, '..', 'data', 'root_js_sheets.json')
 }
