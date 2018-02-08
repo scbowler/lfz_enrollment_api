@@ -1,9 +1,9 @@
 const fs = require('fs');
 const google = require('googleapis');
 const authorize = require('../services/google_auth');
-const { spreadsheetId } = require('../config');
+const { spreadsheet } = require('../config');
 const sendEmail = require('../services/email');
-const { buildDataArray, buildSheetsObj, normalizeNames } = require('../helpers');
+const { buildDataArray, buildSheetsObj, normalizeNames, normalizeSheetName } = require('../helpers');
 const { 
     sheetExists,
     getTemplateId,
@@ -27,7 +27,7 @@ function addStudent(auth, req, res){
 
     const formData = normalizeNames(req.body);
     
-    const sheet = formData.class_date;
+    const sheet = normalizeSheetName(formData.class_date);
 
     try{
         if(sheetExists(sheet, formData.formId)){
@@ -56,10 +56,10 @@ function saveStudent(auth, sheet, formData, res){
 
     const sheets = google.sheets('v4');
 
-    getNextRowNumber(auth, sheet, spreadsheetId[formData.formId]).then( row => {
+    getNextRowNumber(auth, sheet, spreadsheet[formData.formId].id).then( row => {
         sheets.spreadsheets.values.update({
             auth: auth,
-            spreadsheetId: spreadsheetId[formData.formId],
+            spreadsheetId: spreadsheet[formData.formId].id,
             range: `${sheet}!A${row}`,
             valueInputOption: 'USER_ENTERED',
             resource: body
@@ -95,7 +95,7 @@ function createNewSheet(auth, title, classId){
 
         sheets.spreadsheets.batchUpdate({
             auth,
-            spreadsheetId: spreadsheetId[classId],
+            spreadsheetId: spreadsheet[classId].id,
             fields: 'replies/duplicateSheet/properties/sheetId',
             resource: {requests: [
                 {
@@ -120,6 +120,9 @@ function createNewSheet(auth, title, classId){
             });
 
             try{
+
+                updateDataSheet(auth, spreadsheet[classId].id, title, spreadsheet[classId].dataLoc);
+
                 const sheetId = resp.replies[0].duplicateSheet.properties.sheetId;
                 const saveResp = saveSheetInfoLocal(title, classId, sheetId);
     
@@ -133,6 +136,33 @@ function createNewSheet(auth, title, classId){
                 });
             }
         });
+    });
+}
+
+function updateDataSheet(auth, spreadsheetId, sheetName, loc){
+    const body = {
+        values: [
+            [sheetName, `='${sheetName}'!${loc}`]
+        ]
+    };
+
+    const sheets = google.sheets('v4');
+
+    sheets.spreadsheets.values.append({
+        auth,
+        spreadsheetId,
+        range: 'data!A1:b1',
+        valueInputOption: 'USER_ENTERED',
+        resource: body
+    }, function(err, result){
+        if(err){
+            sendEmail({
+                msg: 'GOOGLE API ERROR: Error updating data sheet for: ' + spreadsheetId + ' Sheet name:' + sheetName,
+                function: 'updateDataSheet',
+                file: __filename,
+                error: err.message
+            });
+        }
     });
 }
 
@@ -217,7 +247,7 @@ function syncSheetsFile(auth, req, res){
 
     sheets.spreadsheets.get({
         auth,
-        spreadsheetId: spreadsheetId[classId],
+        spreadsheetId: spreadsheet[classId].id,
         fields: 'sheets(properties(sheetId,title))'
     }, (err, resp) => {
         if(err){
