@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const { EMAIL } = require('../config');
+const ENV = process.env.ENV || 'production';
 
 module.exports = message => {
 
@@ -31,7 +32,7 @@ module.exports = message => {
     const mailOptions = {
         from: EMAIL.from,
         to: EMAIL.to,
-        subject: 'Error saving student to enrollment spreadsheet',
+        subject: `Error saving student to enrollment spreadsheet - From: ${ENV}`,
         text: messageText,
         html: messageHtml
     };
