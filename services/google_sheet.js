@@ -25,12 +25,18 @@ exports.syncSheets = function(req, res){
 
 function addStudent(auth, req, res){
 
-    const formData = normalizeNames(req.body);
+    const formData = normalizeNames(req.body);  
     
     const sheet = normalizeSheetName(formData.class_date);
 
     try{
-        if(sheetExists(sheet, formData.formId)){
+        const exists = sheetExists(sheet, formData.formId);
+        if(exists === 'sync-file'){
+            syncSheetsFile(auth, null, null, {
+                classId: formData.formId,
+                callBack: () => addStudent(auth, req, res)
+            });
+        }else if(exists){
             saveStudent(auth, sheet, formData, res);
         } else {
             createNewSheet(auth, sheet, formData.formId).then(() => {
@@ -41,7 +47,7 @@ function addStudent(auth, req, res){
                 }
                 
                 sendEmail({
-                    msg: 'Caught error in code. createBewSheet failed',
+                    msg: 'Caught error in code. createNewSheet failed',
                     function: 'addStudent',
                     file: __filename,
                     error: err.message
@@ -249,26 +255,38 @@ function getNextRowNumber(auth, sheet, spreadsheetId){
     });
 }
 
-function syncSheetsFile(auth, req, res){
-    const classId = req.query.sheets;
+function syncSheetsFile(auth, req, res, useCallBack){
+    const actions = {}
+
+    if(useCallBack){
+        actions.classId = useCallBack.classId;
+        actions.success = useCallBack.callBack;
+        actions.failure = () => { throw new Error('syncSheetsFile error') } ;
+    } else if(req && res) {
+        actions.classId = req.query.sheets;
+        actions.success = resp => res.send(resp);
+        actions.failure = actions.success;
+    } else {
+        throw new Error('Invalid arguments passed to syncSheetsFile');
+    }
 
     const sheets = google.sheets('v4');
 
     sheets.spreadsheets.get({
         auth,
-        spreadsheetId: spreadsheet[classId].id,
+        spreadsheetId: spreadsheet[actions.classId].id,
         fields: 'sheets(properties(sheetId,title))'
     }, (err, resp) => {
         if(err){
-            return res.send({success: false, error: 'Failed getting sheets'});
+            return actions.failure({success: false, error: 'Failed getting sheets'});
         }
 
         const sheetsArr = buildSheetsObj(resp.sheets);
 
-        writeToSheetsFile(classId, {sheets: sheetsArr}).catch( err => {
+        writeToSheetsFile(actions.classId, {sheets: sheetsArr}).then(resp => {
+            actions.success({ success: true, data: sheetsArr });
+        }).catch( err => {
             sendEmail(err);
         });
-
-        res.send({success: true, data: sheetsArr});
     });
 }

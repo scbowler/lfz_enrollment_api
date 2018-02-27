@@ -8,7 +8,7 @@ function buildSheetsObj(sheetsArr){
 }
 
 function buildDataArray(info){
-    const { first_name, last_name, phone, email, class_date, marketing, formId } = info;
+    const { first_name, last_name, phone, email, class_date, marketing, formId, returning_student } = info;
     const sheet = class_date;
     
     switch(formId){
@@ -42,7 +42,7 @@ function buildDataArray(info){
                 '$0',                                       // Amount
                 marketing,                                  // Marketing
                 genPortalId(
-                    class_date, first_name, last_name 
+                    class_date, first_name, last_name, formId 
                 ),                                          // Portal UID
                 '',                                         // Github Username
                 'Not Invited',                              // Slack Status
@@ -51,6 +51,32 @@ function buildDataArray(info){
                 'Not Created',                              // root prototypes
                 'Not Created',                              // root portfolio
                 'Not Created'                               // root mboutique
+            ];
+        case 'react-101-register':
+            return [
+                null,                                       // #
+                email,                                      // Email
+                first_name + ' ' + last_name,               // Name
+                first_name,                                 // First Name
+                last_name,                                  // Last Name
+                phone,                                      // Phone #
+                class_date,                                 // Class Date
+                new Date().toLocaleString(),                // Enroll Date
+                '',                                         // Follow Up
+                '',                                         // Prep MC
+                '',                                         // Reminder MC
+                '',                                         // Prep Instructions
+                'No',                                       // Paid
+                returning_student === 'true' ? 'Yes' : 'No',// Returning Student Discount
+                '$0',                                       // Amount
+                marketing,                                  // Marketing
+                genPortalId(
+                    class_date, first_name, last_name, formId
+                ),                                          // Portal UID
+                '',                                         // Github Username
+                'Not Invited',                              // Slack Status
+                'Not Invited',                              // Portal Status
+                'Not Invited',                              // Github Team
             ];
         default:
             return [
@@ -66,8 +92,13 @@ function buildDataArray(info){
     }
 }
 
-function genPortalId(date, fName, lName){
-    return 'r' + dateToMonthYear(date) + '_' + fName[0].toLowerCase() + capitalize(lName);
+function genPortalId(date, fName, lName, type = 'r'){
+    const classes = {
+        'root-js': 'rjs',
+        'root-level-1': 'r',
+        'react-101-register': 'r101_'
+    }
+    return (classes[type] || type) + dateToMonthYear(date) + '_' + fName[0].toLowerCase() + capitalize(lName);
 }
 
 function dateToMonthYear(date){
