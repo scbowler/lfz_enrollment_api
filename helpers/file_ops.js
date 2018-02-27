@@ -20,9 +20,13 @@ function sheetExists(title, classId){
     const filePath = spreadsheet[classId].path;
 
     if(filePath){
-        const { sheets } = JSON.parse(fs.readFileSync(filePath));
-                
-        return typeof sheets[title] !== 'undefined';
+        if(fs.existsSync(filePath)){
+            const { sheets } = JSON.parse(fs.readFileSync(filePath));
+
+            return typeof sheets[title] !== 'undefined';
+        }
+
+        return 'sync-file';
     }
 
     throw new Error(`Invalid file path - "${filePath}"`);

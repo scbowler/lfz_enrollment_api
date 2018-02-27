@@ -1,5 +1,4 @@
 const { sendData, getData, syncSheets } = require('../services/google_sheet');
-const sendEmail = require('../services/email');
 
 module.exports = app => {
     // app.get('/', (req, res) => {
