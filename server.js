@@ -14,7 +14,7 @@ app.use(cors());
 
 routes(app);
 
-if(ENV !== 'production'){
+if(ENV !== 'production' && ENV !== 'livedev'){
     app.listen(PORT, () => {
         console.log('Server running on PORT: ' + PORT);
     });
