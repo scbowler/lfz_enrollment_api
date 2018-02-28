@@ -39,7 +39,7 @@ function buildDataArray(info){
                 '',                                         // Reminder MC
                 '',                                         // Prep Instructions
                 'No',                                       // Paid
-                '$0',                                       // Amount
+                null,                                       // Amount
                 marketing,                                  // Marketing
                 genPortalId(
                     class_date, first_name, last_name, formId 
@@ -68,7 +68,7 @@ function buildDataArray(info){
                 '',                                         // Prep Instructions
                 'No',                                       // Paid
                 returning_student === 'true' ? 'Yes' : 'No',// Returning Student Discount
-                '$0',                                       // Amount
+                null,                                       // Amount
                 marketing,                                  // Marketing
                 genPortalId(
                     class_date, first_name, last_name, formId
