@@ -7,6 +7,10 @@ module.exports = app => {
 
     // app.post('/get-data', getData);
 
+    app.get('/', (req, res) => {
+	res.send('<h1>Site status: [OK]</h1>');
+    });
+
     app.post('/send-data', sendData);
 
     app.get('/sync-sheets', syncSheets);
