@@ -29,7 +29,6 @@ class Login extends Component {
                                         <Link style={linkStyle} className="blue-grey-text text-darken-1" to="/">Cancel</Link>
                                         <button className="btn blue-grey darken-1">Sign In</button>
                                     </div>
-                                    {/* <p className="red-text center-align">{authError}</p> */}
                                 </form>
                             </div>
                         </div>
