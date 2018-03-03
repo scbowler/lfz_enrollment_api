@@ -1,12 +1,16 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { reduxForm, Field } from 'redux-form';
+import { connect } from 'react-redux';
 import { renderInput } from '../helpers';
+import { login } from '../actions';
 
 class Login extends Component {
 
     handleSignIn(vals){
         console.log('Login Values:', vals);
+
+        this.props.login(vals);
     }
 
     render(){
@@ -43,4 +47,4 @@ Login = reduxForm({
     form: 'login'
 })(Login);
 
-export default Login;
+export default connect(null, { login })(Login);
