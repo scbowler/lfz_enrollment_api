@@ -22,6 +22,7 @@ function buildDataArray(info){
                 phone,                                      // Phone #
                 new Date().toLocaleString(),                // Enroll Date
                 getFromParentheses(class_date),             // In Person / Virtual
+                'New'                                       // Status
             ];
         case 'root-js':
         case 'root-level-1':
@@ -34,6 +35,7 @@ function buildDataArray(info){
                 phone,                                      // Phone #
                 class_date,                                 // Class Date
                 new Date().toLocaleString(),                // Enroll Date
+                'New - Action Required',                    // Status
                 '',                                         // Follow Up
                 '',                                         // Prep MC
                 '',                                         // Reminder MC
@@ -62,6 +64,7 @@ function buildDataArray(info){
                 phone,                                      // Phone #
                 class_date,                                 // Class Date
                 new Date().toLocaleString(),                // Enroll Date
+                'New - Action Required',                    // Status
                 '',                                         // Follow Up
                 '',                                         // Prep MC
                 '',                                         // Reminder MC
@@ -131,7 +134,7 @@ function dateToMonthYear(date){
 function getFromParentheses(str){
     const result = /(\((.*)\))/g.exec(str);
 
-    return result[result.length - 1] || 'Unknown';
+    return result ? result[result.length - 1] : 'In-person';
 }
 
 function normalizeSheetName(name){
@@ -158,6 +161,24 @@ function normalizeNames(obj){
     return normalized;
 }
 
+function cleanRowData(rows){
+    const cleanRows = [];
+    const length = rows.length;
+    let done = false;
+    let index = 0;
+
+    while(!done && index < length){
+        if(rows[index].length > 0){
+            cleanRows.push(rows[index]);
+            index++;
+            continue;
+        }
+
+        done = true;
+    }
+    return cleanRows;
+}
+
 function capitalize(str){
     return str[0].toUpperCase() + str.slice(1);
 }
@@ -166,5 +187,6 @@ module.exports = {
     buildDataArray,
     buildSheetsObj,
     normalizeNames,
-    normalizeSheetName
+    normalizeSheetName,
+    cleanRowData
 }

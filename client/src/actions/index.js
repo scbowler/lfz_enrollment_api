@@ -10,9 +10,14 @@ export function register(cred){
 
             dispatch({ type: types.REGISTER });
         } catch (err){
+            let errorToSend = ['Unable to create account'];
+            if(err.response){
+                errorToSend = err.response.data
+            }
+
             dispatch({
                 type: types.AUTH_ERROR,
-                error: 'Unable to create account'
+                error: errorToSend
             });
         }
     }
@@ -36,7 +41,6 @@ export function login(cred){
 }
 
 export function logout(){
-
     localStorage.removeItem('token');
 
     return {
@@ -44,14 +48,83 @@ export function logout(){
     };
 }
 
-export function test(){
+export function getCourseList(){
     return async dispatch => {
-        const resp = await axios.get('/api/test-route', {
-            headers: {
-                authorization: localStorage.getItem('token')
-            }
-        });
+        try {
+            const resp = await axios.get('/api/get-sheet-data', {
+                headers: {
+                    authorization: localStorage.getItem('token')
+                }
+            });
 
-        console.log('Test Resp:', resp);
+            dispatch({
+                type: types.GET_ALL_SHEETS,
+                payload: resp.data.classList
+            });
+        } catch(err){
+            dispatch({
+                type: types.SHEETS_ERROR,
+                error: 'Error fetching sheets data'
+            });
+        }
     }
+}
+
+export function syncCourse(course){
+    return async dispatch => {
+        try {
+            const resp = await axios.get(`/api/sync-sheets?sheets=${course}`, {
+                headers: {
+                    authorization: localStorage.getItem('token')
+                }
+            });
+
+            dispatch({
+                type: types.SYNC_SHEET_INFO,
+                course,
+                payload: resp.data.data
+            });
+
+        } catch(err){
+            dispatch({
+                type: types.SHEETS_ERROR,
+                error: `Error syncing course: ${course}`
+            });
+        }
+    }
+}
+
+export function getCourseRoster(courseId, rosterId){
+    return async dispatch => {
+        try {
+            const resp = await axios.post(`/api/get-roster`, {courseId, rosterId}, {
+                headers: {
+                    authorization: localStorage.getItem('token')
+                }
+            });
+
+            dispatch({
+                type: types.GET_COURSE_ROSTER,
+                payload: resp.data.rows
+            });
+        } catch(err){
+            dispatch({
+                type: types.SHEETS_ERROR,
+                error: `Error getting ${courseId}'s roster for ${rosterId}`
+            });
+        }
+    }
+}
+
+export function saveStudentData(data){
+    const resp = axios.post('/api/send-data', data);
+
+    return {
+        type: types.SAVE_STUDENT_DATA,
+        payload: resp
+    }
+}
+
+export function clearAuthError(){
+    return { type: types.CLEAR_AUTH_ERROR };
 }

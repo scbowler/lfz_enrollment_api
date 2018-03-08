@@ -81,9 +81,25 @@ function getTemplateId(classId, templateName = 'template'){
     throw new Error(`Invalid file path - "${filePath}"`);
 }
 
+function getSheetsList(classId){
+    const filePath = spreadsheet[classId].path;
+
+    if(filePath){
+        if(fs.existsSync(filePath)){
+            const { sheets } = JSON.parse(fs.readFileSync(filePath));
+
+            return sheets;
+        }
+        return {'Missing File - Sync Course': true};
+    }
+
+    throw new Error(`Invalid file path = "${filePath}"`);
+}
+
 module.exports = {
     sheetExists,
     getTemplateId,
     writeToSheetsFile,
-    saveSheetInfoLocal
+    saveSheetInfoLocal,
+    getSheetsList
 }
