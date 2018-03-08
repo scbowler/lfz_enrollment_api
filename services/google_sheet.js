@@ -3,24 +3,41 @@ const google = require('googleapis');
 const authorize = require('../services/google_auth');
 const { spreadsheet } = require('../config');
 const sendEmail = require('../services/email');
-const { buildDataArray, buildSheetsObj, normalizeNames, normalizeSheetName } = require('../helpers');
+const { 
+    buildDataArray,
+    buildSheetsObj,
+    normalizeNames,
+    normalizeSheetName,
+    cleanRowData
+} = require('../helpers');
 const { 
     sheetExists,
     getTemplateId,
     writeToSheetsFile,
-    saveSheetInfoLocal 
+    saveSheetInfoLocal,
+    getSheetsList
 } = require('../helpers/file_ops');
 
 exports.sendData = function(req, res){
     authorize(req, res, addStudent);
 }
 
-exports.getData = function(req, res){
-    authorize(req, res, getClassList);
+exports.getRoster = function(req, res){
+    authorize(req, res, getCourseRoster);
 }
 
 exports.syncSheets = function(req, res){
     authorize(req, res, syncSheetsFile);
+}
+
+exports.getClassList = function(req, res) {
+    const returnData = {};
+
+    Object.keys(spreadsheet).map( (classId, index) => {
+        returnData[classId] = getSheetsList(classId);
+    });
+
+    res.send({classList: returnData});
 }
 
 function addStudent(auth, req, res){
@@ -31,6 +48,7 @@ function addStudent(auth, req, res){
 
     try{
         const exists = sheetExists(sheet, formData.formId);
+
         if(exists === 'sync-file'){
             syncSheetsFile(auth, null, null, {
                 classId: formData.formId,
@@ -43,6 +61,7 @@ function addStudent(auth, req, res){
                 saveStudent(auth, sheet, formData, res);
             }).catch(err => {
                 if(err.msg){
+                    res.send({ success: false });
                     return sendEmail(err);
                 }
                 
@@ -51,7 +70,8 @@ function addStudent(auth, req, res){
                     function: 'addStudent',
                     file: __filename,
                     error: err.message
-                })
+                });
+                res.send({success: false});
             });
         }   
     } catch(err){
@@ -61,6 +81,7 @@ function addStudent(auth, req, res){
             file: __filename,
             error: err.message
         });
+        res.send({ success: false });
     }
 }
 
@@ -181,25 +202,26 @@ function updateDataSheet(auth, spreadsheetId, sheetName, loc){
     });
 }
 
-function getClassList(auth, req, res) {
+function getCourseRoster(auth, req, res) {
     const sheets = google.sheets('v4');
 
-    const sheet = req.body.class;
+    const {courseId, rosterId } = req.body;
 
     sheets.spreadsheets.values.get({
         auth: auth,
-        spreadsheetId: spreadsheetId,
-        range: `${sheet}!A1:H`,
+        spreadsheetId: spreadsheet[courseId].id,
+        range: `${rosterId}!B2:H`,
     }, function(err, response) {
         if (err) {
             res.send({success: false, error: 'Google API Error'});
             return;
         }
         
-        const rows = response.values;
+        let rows = response.values;
         if (rows.length == 0) {
             res.send({success: false, error: 'No Data Found'});
         } else {
+            rows = cleanRowData(rows);
             res.send({success: true, rows});
         }
     });

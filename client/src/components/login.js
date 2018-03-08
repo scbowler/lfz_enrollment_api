@@ -3,21 +3,23 @@ import { Link } from 'react-router-dom';
 import { reduxForm, Field } from 'redux-form';
 import { connect } from 'react-redux';
 import { renderInput } from '../helpers';
-import { login } from '../actions';
+import { login, clearAuthError } from '../actions';
 
 class Login extends Component {
 
     handleSignIn(vals){
-        console.log('Login Values:', vals);
-
         this.props.login(vals);
+    }
+
+    componentWillUnmount(){
+        this.props.clearAuthError();
     }
 
     render(){
         const linkStyle = {
             marginRight: '8px'
         }
-        const { handleSubmit } = this.props;
+        const { handleSubmit, authError } = this.props;
  
         return (
             <div>
@@ -32,6 +34,7 @@ class Login extends Component {
                                     <div className="right-align">
                                         <Link style={linkStyle} className="blue-grey-text text-darken-1" to="/">Cancel</Link>
                                         <button className="btn blue-grey darken-1">Sign In</button>
+                                        <p className="red-text">{authError}</p>
                                     </div>
                                 </form>
                             </div>
@@ -47,4 +50,10 @@ Login = reduxForm({
     form: 'login'
 })(Login);
 
-export default connect(null, { login })(Login);
+function mapStateToProps(state){
+    return {
+        authError: state.user.error
+    }
+}
+
+export default connect(mapStateToProps, { login, clearAuthError })(Login);

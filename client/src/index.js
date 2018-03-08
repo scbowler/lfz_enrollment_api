@@ -4,12 +4,13 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
 import think from './middleware/think';
+import promise from './middleware/promise';
 import rootReducer from './reducers';
 import types from './actions/types';
 
 import App from './components/app';
 
-const store = createStore(rootReducer, {}, applyMiddleware(think));
+const store = createStore(rootReducer, {}, applyMiddleware(think, promise));
 
 if(localStorage.getItem('token')){
     store.dispatch({
