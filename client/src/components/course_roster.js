@@ -57,7 +57,10 @@ class CourseRoster extends Component {
                 <div className="btn-container">
                     <Link to="/landing" className="btn blue-grey darken-1">Go Back</Link>
                 </div>
-                <h1 className="center">{className} Roster</h1>
+                <div className="center">
+                    <h2>{className} Roster</h2>
+                    <h5 className="grey-text text-darken-1">{rosterId}</h5>
+                </div>
                 {this.buildRosterTable()}
                 <AddModal formId={courseId} className={className} classDate={rosterId} show={this.hasData}/>
             </div>

@@ -10,11 +10,15 @@ class AddRow extends Component {
         super(props);
 
         this.state = {
-            visible: false
+            visible: false,
+            saving: false
         };
     }
 
     submitStudent(values){
+        this.setState({
+            saving: true
+        });
         const { classDate, formId } = this.props;
 
         values.class_date = classDate;
@@ -22,7 +26,10 @@ class AddRow extends Component {
 
         this.props.saveStudentData(values).then(() => {
             this.props.getCourseRoster(formId, classDate);
-            this.setState({ visible: false });
+            this.setState({
+                visible: false,
+                saving: false
+            });
         });
     }
 
@@ -38,6 +45,7 @@ class AddRow extends Component {
             )
         }
 
+        const { saving } = this.state;
         const { handleSubmit, classDate, className } = this.props;
 
         return (
@@ -51,27 +59,28 @@ class AddRow extends Component {
                                     <form onSubmit={handleSubmit(this.submitStudent.bind(this))}>
                                         <div className="row">
                                             <div className="col s6">
-                                                <Field component={renderInput} name="first_name" placeholder="First Name" />
+                                                <Field component={renderInput} name="first_name" placeholder="First Name" disabled={saving} />
                                             </div>
                                             <div className="col s6">
-                                                <Field component={renderInput} name="last_name" placeholder="Last Name" />
+                                                <Field component={renderInput} name="last_name" placeholder="Last Name" disabled={saving} />
                                             </div>
                                         </div>
                                         <div className="row">
                                             <div className="col s6">
-                                                <Field component={renderInput} name="email" placeholder="Email" />
+                                                <Field component={renderInput} name="email" placeholder="Email" disabled={saving} />
                                             </div>
                                             <div className="col s6">
-                                                <Field component={renderInput} name="phone" placeholder="Phone" />
+                                                <Field component={renderInput} name="phone" placeholder="Phone" disabled={saving} />
                                             </div>
                                         </div>
-                                        <Field component={renderInput} name="marketing" placeholder="Marketing Info" />
+                                        <Field component={renderInput} name="marketing" placeholder="Marketing Info" disabled={saving} />
                                         <div className="info">
                                             <p className="my-2 grey-text text-lighten-1"><strong>Sign Up Time:</strong> {new Date().toLocaleString()}</p>
                                         </div>
                                         <div className="right-align">
                                             <button onClick={() => this.setState({visible: false})} type="button" className="btn blue-grey darken-1 mr-2" to="/">Cancel</button>
                                             <button className="btn blue-grey darken-1">Save</button>
+                                            <p className="red-text text-darken-1">{saving ? 'Saving Student...' : ''}</p>
                                         </div>
                                     </form>
                                 </div>
