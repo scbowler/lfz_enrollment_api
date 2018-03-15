@@ -12,11 +12,7 @@ const ENV = process.env.ENV || 'production';
 
 const app = express();
 
-mongoose.connect(dbConnect).then(() => {
-    console.log('Connected to MongoDB');
-}).catch(err => {
-    console.log('Error connecting to MongoDB:', err.message);
-});
+mongoose.createConnection(dbConnect);
 
 app.use(express.static(path.resolve(__dirname, 'client', 'dist')));
 app.use(express.urlencoded({extended: false}));
