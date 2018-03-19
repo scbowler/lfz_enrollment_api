@@ -3,6 +3,14 @@
   "version": "1.0.0",
   "description": "LFZ enrollment service API utilizing Google Sheets API",
   "main": "index.js",
+  "proxy": {
+    "/auth/*": {
+      "target": "http://localhost:9000/"
+    },
+    "/api/*": {
+      "target": "http://localhost:9000/"
+    }
+  },
   "scripts": {
     "start": "node dev_server.js",
     "bundle": "node_modules/.bin/webpack --config webpack.deploy.config.js --progress --colors",
