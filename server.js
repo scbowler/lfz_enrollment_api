@@ -14,16 +14,10 @@ const app = express();
 
 mongoose.Promise = Promise;
 
-mongoose.connect(dbConnect, (err) => {
-    if(err){
-        mongoose.createConnection(dbConnect, (err) => {
-            if(err) return console.log('Unable to connect to DB:', err.message);
+mongoose.createConnection(dbConnect, (err) => {
+    if(err) return console.log('Unable to connect to DB:', err.message);
 
-            console.log('Created multi connection to DB');
-        });
-    }
-
-    console.log('Single connection to DB');
+    console.log('Connected to DB'); 
 });
 
 app.use(express.static(path.resolve(__dirname, 'client', 'dist')));
