@@ -1,3 +1,3 @@
-# Google Sheet API Testing
+# LearningFuze Enrollment Service API
 
-> Prototyping with the Google Spreadsheet API. Goal is to have submitted forms add data to a Google Sheet.
+> Enrollment forms from LearningFuze's website will update a Google spreadsheet with each form submission.

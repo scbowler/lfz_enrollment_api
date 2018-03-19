@@ -14,7 +14,7 @@ function tokenForUser(user) {
 exports.signup = (req, res, next) => {
     let { email, password } = req.body;
 
-    email = email.toLowerCase()
+    email = email.toLowerCase();
 
     if(emailWhiteList.indexOf(email) < 0){
         return res.status(422).send(['Email not white listed']);
@@ -52,6 +52,8 @@ exports.signup = (req, res, next) => {
                 token: tokenForUser(newUser)
             })
         });
+    }).catch(() => {
+        console.log('Catch?')
     });
 }
 

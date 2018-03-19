@@ -15,10 +15,11 @@ class AddRow extends Component {
         };
     }
 
-    submitStudent(values){
+    submitStudent(values, action, form){
         this.setState({
             saving: true
         });
+
         const { classDate, formId } = this.props;
 
         values.class_date = classDate;
@@ -30,7 +31,16 @@ class AddRow extends Component {
                 visible: false,
                 saving: false
             });
+            form.reset();
         });
+    }
+
+    cancelForm(reset){
+        this.setState({ 
+            visible: false,
+            saving: false
+        });
+        reset();
     }
 
     render(){
@@ -46,7 +56,7 @@ class AddRow extends Component {
         }
 
         const { saving } = this.state;
-        const { handleSubmit, classDate, className } = this.props;
+        const { handleSubmit, classDate, className, reset } = this.props;
 
         return (
             <div className="add-modal">
@@ -78,8 +88,8 @@ class AddRow extends Component {
                                             <p className="my-2 grey-text text-lighten-1"><strong>Sign Up Time:</strong> {new Date().toLocaleString()}</p>
                                         </div>
                                         <div className="right-align">
-                                            <button onClick={() => this.setState({visible: false})} type="button" className="btn blue-grey darken-1 mr-2" to="/">Cancel</button>
-                                            <button className="btn blue-grey darken-1">Save</button>
+                                            <button onClick={() => this.cancelForm(reset)} type="button" className="btn blue-grey darken-1 mr-2" to="/">{ saving ? 'Close' : 'Cancel'}</button>
+                                            <button className="btn blue-grey darken-1" disabled={saving}>Save</button>
                                             <p className="red-text text-darken-1">{saving ? 'Saving Student...' : ''}</p>
                                         </div>
                                     </form>
@@ -94,14 +104,7 @@ class AddRow extends Component {
 }
 
 AddRow = reduxForm({
-    form: 'add-form',
-    initialValues: {
-        first_name: 'Firsttime',
-        last_name: 'Lastname',
-        email: 'test@test.com',
-        phone: '(909) 890-5678',
-        marketing: 'Google'
-    }
+    form: 'add-form'
 })(AddRow);
 
 export default connect(null, { saveStudentData, getCourseRoster })(AddRow);
