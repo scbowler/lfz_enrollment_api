@@ -62,6 +62,9 @@ export function getCourseList(){
                 payload: resp.data.classList
             });
         } catch(err){
+            if (err.response.status === 401){
+                return dispatch(logout());
+            }
             dispatch({
                 type: types.SHEETS_ERROR,
                 error: 'Error fetching sheets data'

@@ -1,7 +1,7 @@
 {
-  "name": "google_sheet_test",
+  "name": "lfz_enrollment_api",
   "version": "1.0.0",
-  "description": "",
+  "description": "LFZ service utilizing google sheets for tracking enrollment",
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
