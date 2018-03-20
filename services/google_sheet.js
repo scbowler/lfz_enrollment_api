@@ -40,6 +40,10 @@ exports.getClassList = function(req, res) {
     res.send({classList: returnData});
 }
 
+exports.attendance = function(req, res){
+    authorize(req, res, updateAttended);
+}
+
 function addStudent(auth, req, res){
 
     const formData = normalizeNames(req.body);  
@@ -120,6 +124,43 @@ function saveStudent(auth, sheet, formData, res){
         });
     }).catch( err => {
         sendEmail(err);
+    });
+}
+
+function updateAttended(auth, req, res){
+    const { value, index, roster: { courseId, rosterId }} = req.body;
+
+    const body = {
+        values: [[value]]
+    };
+
+    const sheets = google.sheets('v4');
+
+    sheets.spreadsheets.values.update({
+        auth: auth,
+        spreadsheetId: spreadsheet[courseId].id,
+        range: `${rosterId}!I${index + 2}`,
+        valueInputOption: 'USER_ENTERED',
+        resource: body
+    }, function (err, result) {
+        if (err) {
+            console.log('Error:', err.message);
+            // sendEmail({
+            //     msg: 'Google API Error Updating Sheet',
+            //     function: {
+            //         name: 'saveStudent',
+            //         paramsList: ['auth', 'sheet', 'formData', 'res'],
+            //         paramsValues: {
+            //             auth, sheet, formData, res: 'Intentionally not included here'
+            //         }
+            //     },
+            //     file: __filename,
+            //     error: err.message
+            // });
+            return res.send({ success: false, error: 'Unable to save data' });
+        }
+
+        res.send({ success: true });
     });
 }
 
@@ -207,10 +248,12 @@ function getCourseRoster(auth, req, res) {
 
     const {courseId, rosterId } = req.body;
 
+    const range = courseId === 'enroll-info-session' ? `${rosterId}!B2:I` : `${rosterId}!B2:H`;
+
     sheets.spreadsheets.values.get({
         auth: auth,
         spreadsheetId: spreadsheet[courseId].id,
-        range: `${rosterId}!B2:H`,
+        range: range,
     }, function(err, response) {
         if (err) {
             res.send({success: false, error: 'Google API Error'});

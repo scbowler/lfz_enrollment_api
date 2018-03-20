@@ -8,5 +8,6 @@ export default {
     SYNC_SHEET_INFO: 'sync_sheet_info',
     GET_COURSE_ROSTER: 'get_course_roster',
     SAVE_STUDENT_DATA: 'save_student_data',
-    SHEETS_ERROR: 'sheets_error'
+    SHEETS_ERROR: 'sheets_error',
+    UPDATE_ATTENDANCE: 'update_attendance'
 };
