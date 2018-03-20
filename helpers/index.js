@@ -22,6 +22,7 @@ function buildDataArray(info){
                 phone,                                      // Phone #
                 new Date().toLocaleString(),                // Enroll Date
                 getFromParentheses(class_date),             // In Person / Virtual
+                'No',                                       // Attended
                 'New'                                       // Status
             ];
         case 'root-js':

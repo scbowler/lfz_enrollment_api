@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { getCourseRoster } from '../actions';
 import { getClassName } from '../helpers';
 import AddModal from './add_modal';
+import Attendance from './attendance';
  
 class CourseRoster extends Component {
 
@@ -14,7 +15,7 @@ class CourseRoster extends Component {
     }
 
     buildRosterTable(){
-        const { roster } = this.props;
+        const { roster, match: { params } } = this.props;
         this.hasData = roster.length > 0;
 
         if(!this.hasData){
@@ -29,8 +30,10 @@ class CourseRoster extends Component {
         for(let row = 0; row < roster.length; row++){
             const pos = row ? 'tbody' : 'thead';
             const tableRow = [];
-            for(let item = 0; item < roster[row].length; item++){
-                const data = row ? <td key={item}>{roster[row][item]}</td> : <th key={item}>{roster[row][item]}</th>
+            const rowLength = roster[row].length;
+            for(let item = 0; item < rowLength; item++){
+                const content = roster[row][item];
+                const data = row ? <td key={item}>{item === rowLength - 1 ? <Attendance roster={params} row={row} attended={content}/> : content}</td> : <th key={item}>{content}</th>
                 tableRow.push(data);
             }
             table[pos].push(<tr key={row}>{tableRow}</tr>);

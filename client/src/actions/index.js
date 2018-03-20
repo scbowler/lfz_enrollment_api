@@ -128,6 +128,16 @@ export function saveStudentData(data){
     }
 }
 
+export function updateAttended(value, index, roster){
+    const resp = axios.post('/api/attendance', {value, index, roster});
+
+    return {
+        type: types.UPDATE_ATTENDANCE,
+        payload: resp,
+        data: { value, index }
+    }
+}
+
 export function clearAuthError(){
     return { type: types.CLEAR_AUTH_ERROR };
 }

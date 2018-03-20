@@ -1,5 +1,5 @@
 const passport = require('passport');
-const { getClassList, sendData, getRoster, syncSheets } = require('../services/google_sheet');
+const { getClassList, sendData, getRoster, syncSheets, attendance } = require('../services/google_sheet');
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 
@@ -18,4 +18,6 @@ module.exports = app => {
     app.post('/api/get-roster', requireAuth, getRoster);
 
     app.post('/api/send-data', sendData);
+
+    app.post('/api/attendance', attendance);
 }
