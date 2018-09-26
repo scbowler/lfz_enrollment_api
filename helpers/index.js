@@ -21,7 +21,7 @@ function buildDataArray(info){
                 marketing,                                  // Marketing
                 phone,                                      // Phone #
                 new Date().toLocaleString(),                // Enroll Date
-                getFromParentheses(class_date),             // In Person / Virtual
+                getFromParentheses(class_date),             // Full Immersion / Part Time
                 'No',                                       // Attended
                 'New'                                       // Status
             ];
@@ -132,10 +132,10 @@ function dateToMonthYear(date){
     return months[dateArr[0]] + dateArr[dateArr.length - 1].slice(2);
 }
 
-function getFromParentheses(str){
+function getFromParentheses(str, fallBack = 'Unknown'){
     const result = /(\((.*)\))/g.exec(str);
 
-    return result ? result[result.length - 1] : 'In-person';
+    return result ? result[result.length - 1] : fallBack;
 }
 
 function normalizeSheetName(name){
