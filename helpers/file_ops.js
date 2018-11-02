@@ -21,6 +21,15 @@ function sheetExists(title, classId){
 
     if(filePath){
         if(fs.existsSync(filePath)){
+            const buffer = fs.readFileSync(filePath);
+
+            if(!buffer.length){
+                const templateId = spreadsheet[classId].templateId || 0;
+                const fileStart = { sheets: { template: { id: templateId }}};
+                fs.writeFileSync(filePath, JSON.stringify(fileStart));
+                return false;
+            }
+
             const { sheets } = JSON.parse(fs.readFileSync(filePath));
 
             return typeof sheets[title] !== 'undefined';
