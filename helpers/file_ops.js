@@ -21,7 +21,11 @@ function sheetExists(title, classId){
 
     if(filePath){
         if(fs.existsSync(filePath)){
-            const { sheets } = JSON.parse(fs.readFileSync(filePath));
+            const buffer = fs.readFileSync(filePath);
+
+            if(!buffer.length) return 'sync-file';
+
+            const { sheets } = JSON.parse(buffer);
 
             return typeof sheets[title] !== 'undefined';
         }
