@@ -14,7 +14,6 @@ function buildDataArray(info){
     switch(formId){
         case 'enroll-info-session':
         case 'enroll-part-time-info-session-oc':
-        case 'enroll-part-time-info-session-sd':
             return [
                 null,                                       // #
                 first_name,                                 // First Name
@@ -25,6 +24,18 @@ function buildDataArray(info){
                 new Date().toLocaleString(),                // Enroll Date
                 getFromParentheses(class_date),             // Full Immersion / Part Time
                 'No',                                       // Attended
+                'New'                                       // Status
+            ];
+        case 'enroll-part-time-info-session-sd':
+            return [
+                null,                                       // #
+                first_name,                                 // First Name
+                last_name,                                  // Last Name
+                email,                                      // Email
+                marketing,                                  // Marketing
+                phone,                                      // Phone #
+                new Date().toLocaleString(),                // Enroll Date
+                class_date,                                 // Form Type
                 'New'                                       // Status
             ];
         case 'root-js':
