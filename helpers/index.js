@@ -163,12 +163,6 @@ function normalizeSheetName(name) {
     return ((name.substr(0, atIndex - 1) || name) + additionalInfo).trim();
 }
 
-// function normalizeSheetName(name){
-//     const atIndex = name.indexOf('@');
-  
-//     return name.substr(0, atIndex - 1) || name;
-// }
-
 function normalizeNames(obj){
     const normalized = {};
 
