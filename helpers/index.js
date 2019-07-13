@@ -151,11 +151,23 @@ function getFromParentheses(str, fallBack = 'Unknown'){
     return result ? result[result.length - 1] : fallBack;
 }
 
-function normalizeSheetName(name){
+function normalizeSheetName(name) {
     const atIndex = name.indexOf('@');
-  
-    return name.substr(0, atIndex - 1) || name;
+    const inParens = /\((.*)\-/g.exec(name);
+    let additionalInfo = '';
+
+    if (inParens) {
+        additionalInfo = ` - ${inParens[inParens.length - 1]}`;
+    }
+
+    return ((name.substr(0, atIndex - 1) || name) + additionalInfo).trim();
 }
+
+// function normalizeSheetName(name){
+//     const atIndex = name.indexOf('@');
+  
+//     return name.substr(0, atIndex - 1) || name;
+// }
 
 function normalizeNames(obj){
     const normalized = {};
