@@ -1,4 +1,3 @@
-const fs = require('fs');
 const google = require('googleapis');
 const authorize = require('../services/google_auth');
 const { spreadsheet } = require('../config');
@@ -144,19 +143,19 @@ function updateAttended(auth, req, res){
         resource: body
     }, function (err, result) {
         if (err) {
-            console.log('Error:', err.message);
-            // sendEmail({
-            //     msg: 'Google API Error Updating Sheet',
-            //     function: {
-            //         name: 'saveStudent',
-            //         paramsList: ['auth', 'sheet', 'formData', 'res'],
-            //         paramsValues: {
-            //             auth, sheet, formData, res: 'Intentionally not included here'
-            //         }
-            //     },
-            //     file: __filename,
-            //     error: err.message
-            // });
+            console.error('Error:', err.message);
+            sendEmail({
+                msg: 'Google API Error Updating Sheet',
+                function: {
+                    name: 'saveStudent',
+                    paramsList: ['auth', 'sheet', 'formData', 'res'],
+                    paramsValues: {
+                        auth, sheet, formData, res: 'Intentionally not included here'
+                    }
+                },
+                file: __filename,
+                error: err.message
+            });
             return res.send({ success: false, error: 'Unable to save data' });
         }
 
