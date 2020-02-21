@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { resolve } = require('path');
 const readline = require('readline');
-const googleAuth = require('google-auth-library');
+const { google } = require('googleapis');
 const { TOKEN_PATH, TOKEN_DIR, SCOPES } = require('../config');
 const sendEmail = require('./email');
 
@@ -30,8 +30,7 @@ function authorize(credentials, callback) {
         const clientSecret = credentials.installed.client_secret;
         const clientId = credentials.installed.client_id;
         const redirectUrl = credentials.installed.redirect_uris[0];
-        const auth = new googleAuth();
-        const oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
+        const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUrl);
 
         // Check if we have previously stored a token.
         fs.readFile(TOKEN_PATH, function(err, token) {
@@ -39,7 +38,7 @@ function authorize(credentials, callback) {
                 getNewToken(oauth2Client, callback);
                 res({success: true, message: 'Generated new token'});
             } else {
-                oauth2Client.credentials = JSON.parse(token);
+                oauth2Client.setCredentials(JSON.parse(token));
                 const result = callback(oauth2Client);
                 if(result && result.then){
                     result.then(resp => {
@@ -48,7 +47,6 @@ function authorize(credentials, callback) {
                 } else {
                     res({success: true});
                 }
-
             }
         });
     });
@@ -85,7 +83,7 @@ function getNewToken(oauth2Client, callback) {
                 });
                 return;
             }
-            oauth2Client.credentials = token;
+            oauth2Client.setCredentials(token);
             storeToken(token);
             callback(oauth2Client);
         });

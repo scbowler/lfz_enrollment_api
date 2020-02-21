@@ -1,4 +1,4 @@
-const google = require('googleapis');
+const { google } = require('googleapis');
 const authorize = require('../services/google_auth');
 const { spreadsheet } = require('../config');
 const sendEmail = require('../services/email');
@@ -199,8 +199,8 @@ function createNewSheet(auth, title, classId){
 
                 updateDataSheet(auth, spreadsheet[classId].id, title, spreadsheet[classId].dataLoc);
 
-                const sheetId = resp.replies[0].duplicateSheet.properties.sheetId;
-                const saveResp = saveSheetInfoLocal(title, classId, sheetId);
+                const sheetId = resp.data.replies[0].duplicateSheet.properties.sheetId;
+                saveSheetInfoLocal(title, classId, sheetId);
     
                 resolve(true);
             } catch(err){
@@ -259,7 +259,7 @@ function getCourseRoster(auth, req, res) {
             return;
         }
         
-        let rows = response.values;
+        let rows = response.data.values;
         if (rows.length == 0) {
             res.send({success: false, error: 'No Data Found'});
         } else {
@@ -293,7 +293,7 @@ function getNextRowNumber(auth, sheet, spreadsheetId){
                 });
             }
             try{
-                const rows = response.values;
+                const rows = response.data.values;
             
                 if (rows.length == 0) {
                     return resolve(1);
@@ -345,7 +345,7 @@ function syncSheetsFile(auth, req, res, useCallBack){
             return actions.failure({success: false, error: 'Failed getting sheets'});
         }
 
-        const sheetsArr = buildSheetsObj(resp.sheets);
+        const sheetsArr = buildSheetsObj(resp.data.sheets);
 
         writeToSheetsFile(actions.classId, {sheets: sheetsArr}).then(resp => {
             actions.success({ success: true, data: sheetsArr });
