@@ -1,5 +1,4 @@
-const fs = require('fs');
-const google = require('googleapis');
+const { google } = require('googleapis');
 const authorize = require('../services/google_auth');
 const { spreadsheet } = require('../config');
 const sendEmail = require('../services/email');
@@ -144,19 +143,19 @@ function updateAttended(auth, req, res){
         resource: body
     }, function (err, result) {
         if (err) {
-            console.log('Error:', err.message);
-            // sendEmail({
-            //     msg: 'Google API Error Updating Sheet',
-            //     function: {
-            //         name: 'saveStudent',
-            //         paramsList: ['auth', 'sheet', 'formData', 'res'],
-            //         paramsValues: {
-            //             auth, sheet, formData, res: 'Intentionally not included here'
-            //         }
-            //     },
-            //     file: __filename,
-            //     error: err.message
-            // });
+            console.error('Error:', err.message);
+            sendEmail({
+                msg: 'Google API Error Updating Sheet',
+                function: {
+                    name: 'saveStudent',
+                    paramsList: ['auth', 'sheet', 'formData', 'res'],
+                    paramsValues: {
+                        auth, sheet, formData, res: 'Intentionally not included here'
+                    }
+                },
+                file: __filename,
+                error: err.message
+            });
             return res.send({ success: false, error: 'Unable to save data' });
         }
 
@@ -200,8 +199,8 @@ function createNewSheet(auth, title, classId){
 
                 updateDataSheet(auth, spreadsheet[classId].id, title, spreadsheet[classId].dataLoc);
 
-                const sheetId = resp.replies[0].duplicateSheet.properties.sheetId;
-                const saveResp = saveSheetInfoLocal(title, classId, sheetId);
+                const sheetId = resp.data.replies[0].duplicateSheet.properties.sheetId;
+                saveSheetInfoLocal(title, classId, sheetId);
     
                 resolve(true);
             } catch(err){
@@ -260,7 +259,7 @@ function getCourseRoster(auth, req, res) {
             return;
         }
         
-        let rows = response.values;
+        let rows = response.data.values;
         if (rows.length == 0) {
             res.send({success: false, error: 'No Data Found'});
         } else {
@@ -294,7 +293,7 @@ function getNextRowNumber(auth, sheet, spreadsheetId){
                 });
             }
             try{
-                const rows = response.values;
+                const rows = response.data.values;
             
                 if (rows.length == 0) {
                     return resolve(1);
@@ -346,7 +345,7 @@ function syncSheetsFile(auth, req, res, useCallBack){
             return actions.failure({success: false, error: 'Failed getting sheets'});
         }
 
-        const sheetsArr = buildSheetsObj(resp.sheets);
+        const sheetsArr = buildSheetsObj(resp.data.sheets);
 
         writeToSheetsFile(actions.classId, {sheets: sheetsArr}).then(resp => {
             actions.success({ success: true, data: sheetsArr });
