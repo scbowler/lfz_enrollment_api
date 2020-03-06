@@ -4,7 +4,7 @@ const cors = require('cors');
 const routes = require('./routes');
 const authRoutes = require('./routes/auth');
 const apiRoutes = require('./routes/api');
-const PORT = process.env.LFZ_ENROLL_API_PORT || 9000;
+const PORT = process.env.PORT || 9000;
 
 const app = express();
 
