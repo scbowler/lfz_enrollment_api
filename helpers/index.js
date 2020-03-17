@@ -14,7 +14,7 @@ function buildDataArray(info){
     switch(formId){
         case 'enroll-info-session':
         case 'enroll-part-time-info-session-oc':
-        case 'enroll-ux-ui-info-session':
+        case 'enroll-ui-ux-info-session':
             return [
                 null,                                       // #
                 first_name,                                 // First Name
