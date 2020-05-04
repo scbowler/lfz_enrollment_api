@@ -13,6 +13,7 @@ function buildDataArray(info){
     
     switch(formId){
         case 'enroll-info-session':
+        case 'enroll-info-session-full-immersion-remote':
         case 'enroll-part-time-info-session-oc':
         case 'enroll-ui-ux-info-session':
             return [
