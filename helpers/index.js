@@ -1,3 +1,4 @@
+const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function buildSheetsObj(sheetsArr){
     const sheets = {};
@@ -39,6 +40,15 @@ function buildDataArray(info){
                 new Date().toLocaleString(),                // Enroll Date
                 class_date,                                 // Form Type
                 'New'                                       // Status
+            ];
+        case 'free-bootcamp-guide':
+            return [
+                null,                                       // #
+                first_name,                                 // First Name
+                last_name,                                  // Last Name
+                email,                                      // Email
+                new Date().toLocaleString(),                // Date Added
+                'NO'                                        // Added to Mail List
             ];
         case 'root-js':
         case 'root-level-1':
@@ -153,7 +163,17 @@ function getFromParentheses(str, fallBack = 'Unknown'){
     return result ? result[result.length - 1] : fallBack;
 }
 
+function genSheetName() {
+    const today = new Date();
+
+    return `${monthsShort[today.getMonth()]} ${today.getFullYear()}`;
+}
+
 function normalizeSheetName(name) {
+    if(!name) {
+        return genSheetName();
+    }
+    
     const atIndex = name.indexOf('@');
     const inParens = /\((.*)\-/g.exec(name);
     let additionalInfo = '';
