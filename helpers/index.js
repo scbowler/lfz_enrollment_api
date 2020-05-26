@@ -77,9 +77,6 @@ function buildDataArray(info){
                 'Not Invited',                              // Slack Status
                 'Not Invited',                              // Portal Status
                 'Not Invited',                              // Github Team
-                'Not Created',                              // lfz-prep-lessons
-                'Not Created',                              // lfz-prep-html-final
-                'Not Created'                               // lfz-prep-js-final
             ];
         case 'root-js':
         case 'root-level-1':
