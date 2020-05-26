@@ -9,7 +9,7 @@ function buildSheetsObj(sheetsArr){
 }
 
 function buildDataArray(info){
-    const { first_name, last_name, phone, email, class_date, marketing, formId, returning_student } = info;
+    const { first_name, last_name, phone, email, class_date, location, marketing, formId, returning_student } = info;
     const sheet = class_date;
     
     switch(formId){
@@ -49,6 +49,37 @@ function buildDataArray(info){
                 email,                                      // Email
                 new Date().toLocaleString(),                // Date Added
                 'NO'                                        // Added to Mail List
+            ];
+        case 'prep-course-in-person':
+        case 'prep-course-remote':
+            return [
+                null,                                       // #
+                email,                                      // Email
+                first_name + ' ' + last_name,               // Name
+                first_name,                                 // First Name
+                last_name,                                  // Last Name
+                phone,                                      // Phone #
+                class_date,                                 // Class Date
+                location,                                   // In-Person/Remote
+                new Date().toLocaleString(),                // Enroll Date
+                'New - Action Required',                    // Status
+                '',                                         // Follow Up
+                '',                                         // Prep MC
+                '',                                         // Reminder MC
+                '',                                         // Prep Instructions
+                'No',                                       // Paid
+                null,                                       // Amount
+                marketing,                                  // Marketing
+                genPortalId(
+                    class_date, first_name, last_name, 'p'
+                ),                                          // Portal UID
+                '',                                         // Github Username
+                'Not Invited',                              // Slack Status
+                'Not Invited',                              // Portal Status
+                'Not Invited',                              // Github Team
+                'Not Created',                              // lfz-prep-lessons
+                'Not Created',                              // lfz-prep-html-final
+                'Not Created'                               // lfz-prep-js-final
             ];
         case 'root-js':
         case 'root-level-1':
@@ -178,7 +209,7 @@ function normalizeSheetName(name) {
     const inParens = /\((.*)\-/g.exec(name);
     let additionalInfo = '';
 
-    if (inParens) {
+    if (inParens && inParens[1] !== 'in') {
         additionalInfo = ` - ${inParens[inParens.length - 1]}`;
     }
 
