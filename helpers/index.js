@@ -9,11 +9,24 @@ function buildSheetsObj(sheetsArr){
 }
 
 function buildDataArray(info){
-    const { first_name, last_name, phone, email, class_date, location, marketing, formId, returning_student } = info;
+    const { first_name, last_name, phone, email, class_date, location = null, marketing, preference = null, formId, returning_student } = info;
     const sheet = class_date;
     
     switch(formId){
         case 'enroll-info-session':
+            return [
+                null,                                       // #
+                first_name,                                 // First Name
+                last_name,                                  // Last Name
+                email,                                      // Email
+                marketing,                                  // Marketing
+                phone,                                      // Phone #
+                getFromParentheses(class_date),             // Location
+                new Date().toLocaleString(),                // Enroll Date
+                preference,                                 // In-Person/Remote Preference
+                'No',                                       // Attended
+                'New'                                       // Status
+            ];
         case 'enroll-info-session-full-immersion-remote':
         case 'enroll-part-time-info-session-oc':
         case 'enroll-ui-ux-info-session':
