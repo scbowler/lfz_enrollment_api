@@ -24,7 +24,7 @@
     "url": "https://github.com/scbowler/lfz_enrollment_api.git"
   },
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "babel-polyfill": "^6.26.0",
     "materialize-css": "^0.100.2",
     "react": "^15.6.1",
